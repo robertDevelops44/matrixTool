@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 ROBERT HUANG
 */
 package cmd
 
@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	_ "modernc.org/sqlite"
 )
 
 // rootCmd represents the base command when called without any subcommands

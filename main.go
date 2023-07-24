@@ -1,8 +1,6 @@
 /*
-Copyright © 2023 ROBERT HUANG rh5661@rit.edu
-
+Copyright © 2023 ROBERT HUANG
 */
-
 package main
 
 import "github.com/rh5661/MatrixTool/cmd"
