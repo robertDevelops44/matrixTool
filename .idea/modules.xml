@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/MatrixTool.iml" filepath="$PROJECT_DIR$/.idea/MatrixTool.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/matrixTool.iml" filepath="$PROJECT_DIR$/.idea/matrixTool.iml" />
     </modules>
   </component>
 </project>
