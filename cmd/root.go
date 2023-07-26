@@ -5,10 +5,7 @@ package cmd
 
 import (
 	"database/sql"
-	"os"
-
 	"github.com/spf13/cobra"
-
 	_ "modernc.org/sqlite"
 )
 
@@ -123,25 +120,18 @@ func Execute() {
 
 	// open db
 	db, openErr := sql.Open("sqlite", "./data.db")
-	if openErr != nil {
-		os.Exit(1)
-	}
+	cobra.CheckErr(openErr)
+
 	defer func(db *sql.DB) {
 		err := db.Close()
-		if err != nil {
-
-		}
+		cobra.CheckErr(err)
 	}(db)
 
 	_, createErr := db.Exec(dbInit)
-	if createErr != nil {
-		os.Exit(1)
-	}
+	cobra.CheckErr(createErr)
 
 	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	cobra.CheckErr(err)
 }
 
 func init() {
