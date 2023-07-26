@@ -22,3 +22,5 @@ go.work
 
 identifier.sqlite
 data.db
+/.idea/dataSources.xml
+/.idea/sqldialects.xml
