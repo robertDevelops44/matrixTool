@@ -13,7 +13,7 @@ const dbInit string = `
 DROP TABLE IF EXISTS matrix;
 
 CREATE TABLE IF NOT EXISTS matrix (
-	id 					INTEGER NOT NULL PRIMARY KEY,
+	id 					INTEGER PRIMARY KEY,
 	contract_start 		DATE NOT NULL,
 	state_code_id 		INTEGER NOT NULL,
 	util_code_id		INTEGER NOT NULL,
