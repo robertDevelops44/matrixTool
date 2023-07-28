@@ -3,6 +3,7 @@ module github.com/rh5661/matrixTool
 go 1.20
 
 require (
+	//github.com/rh5661/matrixTool v1.0.0
 	github.com/spf13/cobra v1.7.0
 	github.com/xuri/excelize/v2 v2.7.1
 	modernc.org/sqlite v1.24.0
