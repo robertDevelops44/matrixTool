@@ -7,6 +7,15 @@ import (
 	"strconv"
 )
 
+type QueryParameters struct {
+	StartDate   string `json:"startDate"`
+	Util        string `json:"util"`
+	DualBilling bool   `json:"dualBilling"`
+	Terms       []int  `json:"terms"`
+}
+
+var userParameters = QueryParameters{}
+
 func ProcessRow(row []string) bool {
 
 	var contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper string
@@ -53,4 +62,28 @@ func ProcessRow(row []string) bool {
 	//50-299: %s
 	//300-1099: %s`, contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper)
 	return true
+}
+
+func LoadParameters(newParameters QueryParameters) {
+	//var memAdd = &userParameters
+	//*memAdd = newParameters
+	userParameters := newParameters
+	fmt.Println("user parameters records: ")
+	fmt.Println(userParameters)
+}
+
+func SetStartDate(startDate string) {
+	(userParameters).StartDate = startDate
+}
+
+func SetUtil(util string) {
+	(userParameters).Util = util
+}
+
+func SetDualBilling(dualBilling bool) {
+	(userParameters).DualBilling = dualBilling
+}
+
+func SetTerms(terms []int) {
+	(userParameters).Terms = terms
 }
