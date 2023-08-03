@@ -27,8 +27,7 @@ func ReadExcelFile(filePath string) {
 	cobra.CheckErr(err)
 	rows, err := workbook.GetRows(mainSheetName)
 	cobra.CheckErr(err)
-	//fmt.Println("asap")
-	//dbModify.ProcessRow(rows[53])
+	dbModify.ReInitializeDatabase()
 	for _, row := range rows[53:134] {
 		dbModify.ProcessRow(row)
 	}
@@ -63,11 +62,6 @@ func ReadExcelFile(filePath string) {
 	//	fmt.Println(entry)
 	//}
 
-	entries := dbModify.GetFilteredEntries()
-	fmt.Println()
-	for _, entry := range entries {
-		fmt.Printf("%+v\n", entry)
-	}
 }
 
 //func WriteReport(filePath string)
