@@ -15,16 +15,16 @@ DROP TABLE IF EXISTS matrix;
 CREATE TABLE IF NOT EXISTS matrix (
 	id 					INTEGER PRIMARY KEY,
 	contract_start 		DATE NOT NULL,
-	state_code_id 		INTEGER NOT NULL,
-	util_code_id		INTEGER NOT NULL,
+	state_code 			TEXT NOT NULL,
+	util_code			TEXT NOT NULL,
 	util_zone			TEXT NOT NULL,
 	util_rate_code		TEXT,
 	product_option		TEXT NOT NULL,
 	billing_method 		TEXT NOT NULL,
 	contract_term		INTEGER NOT NULL,
-	usage_lower			DOUBLE NOT NULL,
-	usage_middle 		DOUBLE NOT NULL,
-	usage_upper 		DOUBLE NOT NULL
+	usage_lower			FLOAT NOT NULL,
+	usage_middle 		FLOAT NOT NULL,
+	usage_upper 		FLOAT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS state_codes (
@@ -96,8 +96,9 @@ INSERT INTO util_codes (util_code,util_name) VALUES
 	("TE",		"Toledo Edison"),			
 	("UNITIL",	"Unitil Energy Systems"),			
 	("WPP",		"Allegheny Power WPP");
-
 `
+
+const parametersFilePath = "parameters.json"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
