@@ -3,9 +3,19 @@ package dbModify
 import (
 	"database/sql"
 	"fmt"
+	"github.com/mailru/easyjson"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/spf13/cobra"
+	"os"
 	"strconv"
 )
+
+type MatrixEntry struct {
+	Id                                                                       int
+	ContractStart, State, Util, Zone, RateCode, ProductOption, BillingMethod string
+	Term                                                                     int
+	UsageLower, UsageMiddle, UsageUpper                                      float32
+}
 
 type QueryParameters struct {
 	StartDate   string `json:"startDate"`
@@ -14,7 +24,9 @@ type QueryParameters struct {
 	Terms       []int  `json:"terms"`
 }
 
-var userParameters = QueryParameters{}
+var UserParameters = QueryParameters{}
+
+const parametersFilePath = "./parameters.json"
 
 func ProcessRow(row []string) bool {
 
@@ -39,8 +51,10 @@ func ProcessRow(row []string) bool {
 		err := db.Close()
 		cobra.CheckErr(err)
 	}(db)
-	stmt, err := db.Prepare(`INSERT INTO matrix (contract_start, state_code_id, util_code_id, util_zone, util_rate_code, product_option, billing_method, contract_term, usage_lower, usage_middle, usage_upper) 
-	VALUES (?,?,?,?,?,?,?,?,?,?,?);`)
+
+	insertSQL := `INSERT INTO matrix (contract_start, state_code, util_code, util_zone, util_rate_code, product_option, billing_method, contract_term, usage_lower, usage_middle, usage_upper) 
+	VALUES (?,?,?,?,?,?,?,?,?,?,?);`
+	stmt, err := db.Prepare(insertSQL)
 	cobra.CheckErr(err)
 	res, err := stmt.Exec(contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper)
 	cobra.CheckErr(err)
@@ -50,7 +64,7 @@ func ProcessRow(row []string) bool {
 
 	fmt.Println("Id inserted: " + strconv.FormatInt(id, 10))
 
-	//	fmt.Printf(`Contract Start Month: %s
+	//fmt.Printf(`Contract Start Month: %s
 	//State: %s
 	//Utility: %s
 	//Zone: %s
@@ -64,26 +78,135 @@ func ProcessRow(row []string) bool {
 	return true
 }
 
+func GetFilteredEntries() []MatrixEntry {
+	fmt.Println(`Getting filtered entries...`)
+
+	userParameters := ReadJson(parametersFilePath)
+	LoadParameters(userParameters)
+
+	db, openErr := sql.Open("sqlite", "./data.db")
+	cobra.CheckErr(openErr)
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		cobra.CheckErr(err)
+	}(db)
+
+	numParams := 0
+	var paramsToInsert []string
+	querySQL := `SELECT * FROM matrix WHERE `
+
+	var rows *sql.Rows
+	var err error
+
+	fmt.Println("Start Date: " + UserParameters.StartDate)
+	if UserParameters.StartDate != "" {
+		querySQL += `contract_start = ? AND `
+		//startParam = UserParameters.StartDate
+		paramsToInsert = append(paramsToInsert, UserParameters.StartDate)
+		numParams++
+	}
+	fmt.Println("Util: " + UserParameters.Util)
+	if UserParameters.Util != "" {
+		querySQL += `util_code = ? AND `
+		paramsToInsert = append(paramsToInsert, UserParameters.Util)
+		numParams++
+	}
+	fmt.Println("Dual Billing: " + strconv.FormatBool(UserParameters.DualBilling))
+	if !(UserParameters.DualBilling) {
+		querySQL += `billing_method != 'Dual' AND `
+	}
+	termsString, err := ffjson.Marshal(UserParameters.Terms)
+	fmt.Println("Terms: " + string(termsString))
+	if len(UserParameters.Terms) == 4 {
+		querySQL += `contract_term IN (?,?,?,?);`
+		switch numParams {
+		case 0:
+			rows, err = db.Query(querySQL, (UserParameters.Terms)[0], (UserParameters.Terms)[1], (UserParameters.Terms)[2], (UserParameters.Terms)[3])
+			cobra.CheckErr(err)
+		case 1:
+			rows, err = db.Query(querySQL, paramsToInsert[0], (UserParameters.Terms)[0], (UserParameters.Terms)[1], (UserParameters.Terms)[2], (UserParameters.Terms)[3])
+			cobra.CheckErr(err)
+		case 2:
+			rows, err = db.Query(querySQL, paramsToInsert[0], paramsToInsert[1], (UserParameters.Terms)[0], (UserParameters.Terms)[1], (UserParameters.Terms)[2], (UserParameters.Terms)[3])
+			cobra.CheckErr(err)
+		default:
+			fmt.Println("error")
+		}
+	} else {
+		querySQL += `contract_term IN (contract_term);`
+		switch numParams {
+		case 0:
+			rows, err = db.Query(querySQL)
+			cobra.CheckErr(err)
+		case 1:
+			rows, err = db.Query(querySQL, paramsToInsert[0])
+			cobra.CheckErr(err)
+		case 2:
+			rows, err = db.Query(querySQL, paramsToInsert[1])
+			cobra.CheckErr(err)
+		default:
+			fmt.Println("error")
+		}
+	}
+
+	defer func(row *sql.Rows) {
+		err := row.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(rows)
+
+	var entries []MatrixEntry
+
+	for rows.Next() {
+		entry := MatrixEntry{}
+		err := rows.Scan(&entry.Id, &entry.ContractStart, &entry.State, &entry.Util, &entry.Zone, &entry.RateCode, &entry.ProductOption, &entry.BillingMethod, &entry.Term, &entry.UsageLower, &entry.UsageMiddle, &entry.UsageUpper)
+		if err != nil {
+			fmt.Println(err)
+		}
+		entries = append(entries, entry)
+	}
+
+	return entries
+
+}
+
 func LoadParameters(newParameters QueryParameters) {
-	//var memAdd = &userParameters
+	//var memAdd = &UserParameters
 	//*memAdd = newParameters
-	userParameters := newParameters
-	fmt.Println("user parameters records: ")
-	fmt.Println(userParameters)
+	UserParameters = newParameters
+	fmt.Println("User Parameters processed: ")
+	fmt.Println(UserParameters)
+}
+
+func ReadJson(filePath string) QueryParameters {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Println(err)
+		return QueryParameters{}
+	}
+	defaultParameters := &(QueryParameters{})
+	err = easyjson.Unmarshal(data, defaultParameters)
+	if err != nil {
+		fmt.Println(err)
+		return QueryParameters{}
+	}
+	return *defaultParameters
 }
 
 func SetStartDate(startDate string) {
-	(userParameters).StartDate = startDate
+	(UserParameters).StartDate = startDate
 }
 
 func SetUtil(util string) {
-	(userParameters).Util = util
+	(UserParameters).Util = util
 }
 
 func SetDualBilling(dualBilling bool) {
-	(userParameters).DualBilling = dualBilling
+	(UserParameters).DualBilling = dualBilling
 }
 
 func SetTerms(terms []int) {
-	(userParameters).Terms = terms
+	(UserParameters).Terms = terms
 }
