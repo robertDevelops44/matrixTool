@@ -16,13 +16,11 @@ var (
 
 	loadCmd = &cobra.Command{
 		Use:   "load",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+		Short: "Loads matrix excel file into database",
+		Long: `Excel filepath inserted will be parsed and injected into database
+Please specify the absolute filepath from the root
+Example usage:
+matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if filePath == "" && len(args) != 0 {
 				filePath = args[0]
