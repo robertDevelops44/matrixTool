@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/rh5661/matrixTool/pkg/dbModify"
 
 	"github.com/spf13/cobra"
 )
@@ -22,6 +23,11 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("generate called")
 
+		entries := dbModify.GetFilteredEntries()
+		fmt.Println()
+		for _, entry := range entries {
+			fmt.Printf("%+v\n", entry)
+		}
 	},
 }
 
