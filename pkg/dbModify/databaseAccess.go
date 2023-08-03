@@ -27,6 +27,94 @@ type QueryParameters struct {
 var UserParameters = QueryParameters{}
 
 const parametersFilePath = "./parameters.json"
+const dataSourcePath = "./data.db"
+const dbInitSQL string = `
+
+CREATE TABLE IF NOT EXISTS matrix (
+	id 					INTEGER PRIMARY KEY,
+	contract_start 		DATE NOT NULL,
+	state_code 			TEXT NOT NULL,
+	util_code			TEXT NOT NULL,
+	util_zone			TEXT NOT NULL,
+	util_rate_code		TEXT,
+	product_option		TEXT NOT NULL,
+	billing_method 		TEXT NOT NULL,
+	contract_term		INTEGER NOT NULL,
+	usage_lower			FLOAT NOT NULL,
+	usage_middle 		FLOAT NOT NULL,
+	usage_upper 		FLOAT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS state_codes (
+    id				INTEGER PRIMARY KEY,
+    state_code		TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS util_codes (
+    id				INTEGER NOT NULL PRIMARY KEY,
+    util_code		TEXT NOT NULL,
+	util_name		TEXT NOT NULL
+);
+
+INSERT INTO state_codes (state_code) VALUES 
+	("DE"),
+	("IL"),
+	("MA"),
+	("MD"),
+	("ME"),
+	("NH"),
+	("NJ"),
+	("OH"),
+	("PA"),
+	("RI");
+
+INSERT INTO util_codes (util_code,util_name) VALUES
+	("AECO",	"Atlantic City Electric Company"),			
+	("APS",		"Potomac Edison - Allegheny Power"),			
+	("BED",		"Eversource - Boston Edison"), 			
+	("BGE",		"Baltimore Gas and Electric"),			
+	("CAMB",	"Eversource - Cambridge Electric"), 			
+	("CEI",		"Cleveland Electric"),			
+	("CGE",		"Duke Energy"),			
+	("CHGE",	"Central Hudson"),			
+	("CILCO",	"Ameren Rate Zone II - CILCO"),			
+	("CIPS",	"Ameren Rate Zone I - CIPS"),			
+	("CMP",		"Central Maine Power"),			
+	("COME",	"Eversource - Commonwealth Electric"),			
+	("COMED",	"Commonwealth Edison"),			
+	("CONE",	"Consolidated Edison"),			
+	("CS",		"AEP - CS"),			
+	("DELM",	"Conectiv Delmarva"),			
+	("DELMDE",	"Delmarva"),			
+	("DLCO",	"Duquesne Light Company"),
+	("DPL",		"Dayton Power and Light"),
+	("FGE",		"Unitil - Fitchburg Gas and Electric"),			
+	("GSECO",	"Granite State Electric Co (Liberty Utilities)"),			
+	("ILPWR",	"Ameren Rate Zone III - IP"),			
+	("JCPL",	"Jersey Central Power & Light Company"),			
+	("METED",	"Metropolitan Edison Company"),			
+	("MSEL",	"National Grid - Massachusetts Electric Company"),			
+	("MWST",	"Eversource - Western Massachusetts Electric"),			
+	("NECO",	"National Grid - Narragansett Electric"),			
+	("NHEC",	"New Hampshire Electric Co"),			
+	("NIMO",	"National Grid - Niagara Mohawk"),			
+	("NYOR",	"Orange and Rockland"),			
+	("NYSEG",	"New York State Electric & Gas"),			
+	("OE",		"Ohio Edison"),		
+	("OPCO",	"AEP - OP"),			
+	("PECO",	"PECO Energy"),			
+	("PENELEC",	"Pennsylvania Electric Company"),			
+	("PEPCO",	"Potomac Electric Power Company"),			
+	("PP",		"Pennsylvania Power Company"),			
+	("PPL",		"Pennsylvania Power and Light, Inc."),			
+	("PSEG",	"Public Service Electric and Gas Company"),			
+	("PSNH",	"Public Service Of New Hampshire"),			
+	("RECO",	"Rockland Electric Company"),			
+	("RGE",		"Rochester Gas & Electric"),			
+	("TE",		"Toledo Edison"),			
+	("UNITIL",	"Unitil Energy Systems"),			
+	("WPP",		"Allegheny Power WPP");
+`
 
 func ProcessRow(row []string) bool {
 
@@ -44,7 +132,7 @@ func ProcessRow(row []string) bool {
 	usageMiddle = row[9]
 	usageUpper = row[10]
 
-	db, openErr := sql.Open("sqlite", "./data.db")
+	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
 
 	defer func(db *sql.DB) {
@@ -63,18 +151,6 @@ func ProcessRow(row []string) bool {
 	cobra.CheckErr(err)
 
 	fmt.Println("Id inserted: " + strconv.FormatInt(id, 10))
-
-	//fmt.Printf(`Contract Start Month: %s
-	//State: %s
-	//Utility: %s
-	//Zone: %s
-	//Rate Code(s): %s
-	//Product Special Options: %s
-	//Billing Method: %s
-	//Term: %s
-	//0-49: %s
-	//50-299: %s
-	//300-1099: %s`, contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper)
 	return true
 }
 
@@ -84,7 +160,7 @@ func GetFilteredEntries() []MatrixEntry {
 	userParameters := ReadJson(parametersFilePath)
 	LoadParameters(userParameters)
 
-	db, openErr := sql.Open("sqlite", "./data.db")
+	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
 
 	defer func(db *sql.DB) {
@@ -170,6 +246,31 @@ func GetFilteredEntries() []MatrixEntry {
 
 	return entries
 
+}
+
+func InitializeDatabase() {
+	db, openErr := sql.Open("sqlite", dataSourcePath)
+	cobra.CheckErr(openErr)
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		cobra.CheckErr(err)
+	}(db)
+	_, err := db.Exec(dbInitSQL)
+	cobra.CheckErr(err)
+}
+
+func ReInitializeDatabase() {
+	db, openErr := sql.Open("sqlite", dataSourcePath)
+	cobra.CheckErr(openErr)
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		cobra.CheckErr(err)
+	}(db)
+	dropInitSQL := `DROP TABLE IF EXISTS matrix;` + dbInitSQL
+	_, err := db.Exec(dropInitSQL)
+	cobra.CheckErr(err)
 }
 
 func LoadParameters(newParameters QueryParameters) {
