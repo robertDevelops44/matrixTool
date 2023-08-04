@@ -157,7 +157,7 @@ func ProcessRow(row []string) bool {
 func GetFilteredEntries() []MatrixEntry {
 	fmt.Println(`Getting filtered entries...`)
 
-	userParameters := ReadJson(parametersFilePath)
+	userParameters := ReadJson()
 	LoadParameters(userParameters)
 
 	db, openErr := sql.Open("sqlite", dataSourcePath)
@@ -175,7 +175,7 @@ func GetFilteredEntries() []MatrixEntry {
 	var rows *sql.Rows
 	var err error
 
-	fmt.Println("Start Date: " + UserParameters.StartDate)
+	fmt.Println("\nStart Date: " + UserParameters.StartDate)
 	if UserParameters.StartDate != "" {
 		querySQL += `contract_start = ? AND `
 		//startParam = UserParameters.StartDate
@@ -274,15 +274,17 @@ func ReInitializeDatabase() {
 }
 
 func LoadParameters(newParameters QueryParameters) {
-	//var memAdd = &UserParameters
-	//*memAdd = newParameters
 	UserParameters = newParameters
-	fmt.Println("User Parameters processed: ")
+	PrintParameters()
+}
+
+func PrintParameters() {
+	fmt.Println("User Parameters: ")
 	fmt.Println(UserParameters)
 }
 
-func ReadJson(filePath string) QueryParameters {
-	data, err := os.ReadFile(filePath)
+func ReadJson() QueryParameters {
+	data, err := os.ReadFile(parametersFilePath)
 	if err != nil {
 		fmt.Println(err)
 		return QueryParameters{}
@@ -296,18 +298,43 @@ func ReadJson(filePath string) QueryParameters {
 	return *defaultParameters
 }
 
+func writeJson() {
+	data, err := easyjson.Marshal(UserParameters)
+	cobra.CheckErr(err)
+
+	err = os.WriteFile("parameters.json", data, os.ModePerm)
+	cobra.CheckErr(err)
+
+}
+
 func SetStartDate(startDate string) {
+	parameters := ReadJson()
+	LoadParameters(parameters)
 	(UserParameters).StartDate = startDate
+	writeJson()
+	PrintParameters()
 }
 
 func SetUtil(util string) {
+	parameters := ReadJson()
+	LoadParameters(parameters)
 	(UserParameters).Util = util
+	writeJson()
+	PrintParameters()
 }
 
 func SetDualBilling(dualBilling bool) {
+	parameters := ReadJson()
+	LoadParameters(parameters)
 	(UserParameters).DualBilling = dualBilling
+	writeJson()
+	PrintParameters()
 }
 
 func SetTerms(terms []int) {
+	parameters := ReadJson()
+	LoadParameters(parameters)
 	(UserParameters).Terms = terms
+	writeJson()
+	PrintParameters()
 }
