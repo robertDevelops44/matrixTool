@@ -19,7 +19,7 @@ var (
 		Short: "Set the parameter for contract start date",
 		Long: `Contract Start Date will be updated to inputted parameter
 Any Reports generated will be under this start date
-Please write the date in the format "Feb-24"
+Please write the date in the format "MMM-YY" {Abc-##}
 Example usage:
 matrixTool setStart "Jul-23"`,
 		Run: func(cmd *cobra.Command, args []string) {
