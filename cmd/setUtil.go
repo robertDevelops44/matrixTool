@@ -5,27 +5,46 @@ package cmd
 
 import (
 	"fmt"
-
+	"github.com/rh5661/matrixTool/pkg/dbModify"
 	"github.com/spf13/cobra"
+	"regexp"
 )
 
 // setUtilCmd represents the setUtil command
-var setUtilCmd = &cobra.Command{
-	Use:   "setUtil",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+var (
+	util string
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("setUtil called")
-	},
-}
+	setUtilCmd = &cobra.Command{
+		Use:   "setUtil",
+		Short: "Set the parameter for utility",
+		Long: `Utility entered will be updated to inputted parameter
+Any Reports generated will be under this utility
+Please enter the utility short code (all-capitalized): "APS" rather than "Potomac Edison"
+Example usage:
+matrixTool setUtil "APS"`,
+		Run: func(cmd *cobra.Command, args []string) {
+			if util == "" && len(args) != 0 {
+				util = args[0]
+				regex := regexp.MustCompile("^[A-Z]+$")
+				res := regex.MatchString(util)
+				if !res {
+					fmt.Println("Please specify a utility code with the correct format. Run 'matrixTool setUtil --help' for more information.")
+					return
+				}
+				fmt.Println("The entered utility code is: " + util + "\n")
+			} else {
+				fmt.Println("Please specify a utility code. Run 'matrixTool setUtil --help' for more information.")
+				return
+			}
+			dbModify.SetUtil(util)
+
+		},
+	}
+)
 
 func init() {
 	rootCmd.AddCommand(setUtilCmd)
+	rootCmd.PersistentFlags().StringVarP(&util, "util", "", "", "[Required] Set utility of matrix pricing desired")
 
 	// Here you will define your flags and configuration settings.
 
