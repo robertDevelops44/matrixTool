@@ -248,6 +248,36 @@ func GetFilteredEntries() []MatrixEntry {
 
 }
 
+func GetUtilCodes() [][]string {
+	db, openErr := sql.Open("sqlite", dataSourcePath)
+	cobra.CheckErr(openErr)
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		cobra.CheckErr(err)
+	}(db)
+
+	querySQL := `SELECT util_code,util_name FROM util_codes; `
+
+	rows, err := db.Query(querySQL)
+	cobra.CheckErr(err)
+
+	var utilCodes [][]string
+
+	for rows.Next() {
+		var utilPair []string
+		var utilCode string
+		var utilName string
+		err := rows.Scan(&utilCode, &utilName)
+		if err != nil {
+			return nil
+		}
+		utilPair = append(utilPair, utilCode, utilName)
+		utilCodes = append(utilCodes, utilPair)
+	}
+	return utilCodes
+}
+
 func InitializeDatabase() {
 	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
