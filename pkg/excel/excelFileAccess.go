@@ -156,6 +156,7 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 		startDate = "ERROR"
 		fmt.Println("ERROR: READ START DATE")
 	}
+	startDate += " 20" + params.StartDate[4:]
 	infoText := fmt.Sprintf("%s %s Start (%s)", params.Util, startDate, date)
 	infoStartCell := "A" + strconv.Itoa(startRowIndex)
 	infoEndCell := "K" + strconv.Itoa(startRowIndex+3)
