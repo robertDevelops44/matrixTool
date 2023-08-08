@@ -36,6 +36,7 @@ to quickly create a Cobra application.`,
 			excel.ReadExcelFile(filePathExcel)
 			fmt.Println("\nFinished loading")
 			entries := dbModify.GetFilteredEntries()
+			dbModify.InsertMargin(entries)
 			fmt.Println()
 			for _, entry := range entries {
 				fmt.Printf("%+v\n", entry)

@@ -6,6 +6,7 @@ import (
 	"github.com/mailru/easyjson"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/spf13/cobra"
+	"math"
 	"os"
 	"strconv"
 )
@@ -367,4 +368,26 @@ func SetTerms(terms []int) {
 	(UserParameters).Terms = terms
 	writeJson()
 	PrintParameters()
+}
+
+func InsertMargin(entries []MatrixEntry) {
+
+	for i, entry := range entries {
+		entryPtr := &entries[i]
+		entryPtr.UsageLower = calculatePricing(entry.UsageLower)
+		entryPtr.UsageMiddle = calculatePricing(entry.UsageMiddle)
+		entryPtr.UsageUpper = calculatePricing(entry.UsageUpper)
+	}
+}
+
+func calculatePricing(initialPrice float32) float32 {
+	price := (initialPrice + 15) / 1000
+	if initialPrice == 0 {
+		price = 0
+	} else if math.Mod(float64(price), 0.01) <= 0.001 {
+		price = float32(math.Floor(float64(price*100)) / 100)
+		price -= 0.01
+		price += .00998
+	}
+	return price
 }
