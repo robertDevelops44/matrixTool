@@ -80,10 +80,6 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	userParameters := dbModify.ReadJson()
 	datetime := time.Now()
 	sheetName := fmt.Sprintf("%s%s%s-%s-%s", userParameters.StartDate, userParameters.Util, strconv.Itoa(datetime.Hour()), strconv.Itoa(datetime.Minute()), strconv.Itoa(datetime.Second()))
-	//sheetName = strings.ReplaceAll(sheetName, " ", "")
-	//sheetName = strings.ReplaceAll(sheetName, "[", "")
-	//sheetName = strings.ReplaceAll(sheetName, "]", "")
-	//sheetName = sheetName[1 : len(sheetName)-1]
 	_, err = workbook.NewSheet(sheetName)
 	if err != nil {
 		fmt.Println(sheetName)
@@ -106,12 +102,11 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	err = workbook.SetRowHeight(sheetName, 1, 45)
 	fmt.Println("Sizing set...")
 
-	style, err := workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Family: "Calibri"}, Alignment: &excelize.Alignment{WrapText: true}})
+	borders := []excelize.Border{{Type: "top", Color: "#000000", Style: 1}, {Type: "left", Color: "#000000", Style: 1}, {Type: "right", Color: "#000000", Style: 1}, {Type: "bottom", Color: "#000000", Style: 1}}
+	style, err := workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Family: "Calibri"}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
 	err = workbook.SetColStyle(sheetName, "A:K", style)
-	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Bold: true, Color: "#FFFFFF", Family: "Calibri"}, Fill: excelize.Fill{Type: "pattern", Color: []string{"#00008B"}, Pattern: 1}, Alignment: &excelize.Alignment{WrapText: true}})
+	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Bold: true, Color: "#FFFFFF", Family: "Calibri"}, Fill: excelize.Fill{Type: "pattern", Color: []string{"#00008B"}, Pattern: 1}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
 	err = workbook.SetCellStyle(sheetName, "A1", "K1", style)
-	//style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11}})
-	//err = workbook.SetCellStyle(sheetName, "A2", "K5", style)
 	fmt.Println("Styles set...")
 
 	headers := []string{"Contract Start Month", "State", "Utility", "Zone", "Rate Code(s)", "Product Special Options", "Billing Method", "Term", "0 - 49", "50 - 299", "300 - 1099"}
@@ -131,7 +126,37 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	date, err := workbook.GetCellValue(mainSheetName, "A3")
 	date = strings.ReplaceAll(date, "as of ", "")
 	params := dbModify.ReadJson()
-	infoText := fmt.Sprintf("%s %s Start (%s)", params.Util, params.StartDate, date)
+	var startDate string
+	switch params.StartDate[:3] {
+	case "Jan":
+		startDate = "January"
+	case "Feb":
+		startDate = "February"
+	case "Mar":
+		startDate = "March"
+	case "Apr":
+		startDate = "April"
+	case "May":
+		startDate = "May"
+	case "Jun":
+		startDate = "June"
+	case "Jul":
+		startDate = "July"
+	case "Aug":
+		startDate = "August"
+	case "Sep":
+		startDate = "September"
+	case "Oct":
+		startDate = "October"
+	case "Nov":
+		startDate = "November"
+	case "Dec":
+		startDate = "December"
+	default:
+		startDate = "ERROR"
+		fmt.Println("ERROR: READ START DATE")
+	}
+	infoText := fmt.Sprintf("%s %s Start (%s)", params.Util, startDate, date)
 	infoStartCell := "A" + strconv.Itoa(startRowIndex)
 	infoEndCell := "K" + strconv.Itoa(startRowIndex+3)
 	err = workbook.MergeCell(sheetName, infoStartCell, infoEndCell)
@@ -142,6 +167,6 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 
 	err = workbook.Save()
 	cobra.CheckErr(err)
-	fmt.Println("File Saved")
+	fmt.Println("File Saved at: " + filePath)
 
 }
