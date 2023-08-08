@@ -32,7 +32,7 @@ func ReadExcelFile(filePath string) {
 	rows, err := workbook.GetRows(mainSheetName)
 	cobra.CheckErr(err)
 	dbModify.ReInitializeDatabase()
-	for _, row := range rows[53:134] {
+	for _, row := range rows[53:134] { // CHANGE THIS TO ALL ROWS
 		dbModify.ProcessRow(row)
 	}
 	fmt.Println()
