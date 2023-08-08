@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/rh5661/matrixTool/pkg/dbModify"
 	"github.com/rh5661/matrixTool/pkg/excel"
 
 	"github.com/spf13/cobra"
@@ -30,6 +31,7 @@ matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"
 				return
 			}
 
+			dbModify.SetFilePath(filePath)
 			excel.ReadExcelFile(filePath)
 			fmt.Println("\nFinished loading")
 		},
