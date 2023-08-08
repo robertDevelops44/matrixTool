@@ -5,8 +5,10 @@ import (
 	"github.com/rh5661/matrixTool/pkg/dbModify"
 	"github.com/spf13/cobra"
 	"github.com/xuri/excelize/v2"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const mainSheetName = "Daily Matrix Price For All Term"
@@ -76,13 +78,18 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	}(workbook)
 
 	userParameters := dbModify.ReadJson()
-	sheetName := fmt.Sprintf("%v", userParameters)
-	sheetName = strings.ReplaceAll(sheetName, " ", "")
-	sheetName = strings.ReplaceAll(sheetName, "[", "")
-	sheetName = strings.ReplaceAll(sheetName, "]", "")
-	sheetName = sheetName[1 : len(sheetName)-1]
+	datetime := time.Now()
+	sheetName := fmt.Sprintf("%s%s%s-%s-%s", userParameters.StartDate, userParameters.Util, strconv.Itoa(datetime.Hour()), strconv.Itoa(datetime.Minute()), strconv.Itoa(datetime.Second()))
+	//sheetName = strings.ReplaceAll(sheetName, " ", "")
+	//sheetName = strings.ReplaceAll(sheetName, "[", "")
+	//sheetName = strings.ReplaceAll(sheetName, "]", "")
+	//sheetName = sheetName[1 : len(sheetName)-1]
 	_, err = workbook.NewSheet(sheetName)
-	cobra.CheckErr(err)
+	if err != nil {
+		fmt.Println(sheetName)
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	fmt.Println("Sheet created: " + sheetName)
 
 	err = workbook.SetColWidth(sheetName, "A", "A", 9)
