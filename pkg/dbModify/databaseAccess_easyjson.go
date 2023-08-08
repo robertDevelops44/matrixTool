@@ -36,6 +36,10 @@ func easyjson8da5bf1dDecodeGithubComRh5661MatrixToolPkgDbModify(in *jlexer.Lexer
 			continue
 		}
 		switch key {
+		case "filePath":
+			out.FilePath = string(in.String())
+		case "mils":
+			out.Mils = float32(in.Float32())
 		case "startDate":
 			out.StartDate = string(in.String())
 		case "util":
@@ -80,8 +84,18 @@ func easyjson8da5bf1dEncodeGithubComRh5661MatrixToolPkgDbModify(out *jwriter.Wri
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"startDate\":"
+		const prefix string = ",\"filePath\":"
 		out.RawString(prefix[1:])
+		out.String(string(in.FilePath))
+	}
+	{
+		const prefix string = ",\"mils\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.Mils))
+	}
+	{
+		const prefix string = ",\"startDate\":"
+		out.RawString(prefix)
 		out.String(string(in.StartDate))
 	}
 	{
@@ -135,4 +149,147 @@ func (v *QueryParameters) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *QueryParameters) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson8da5bf1dDecodeGithubComRh5661MatrixToolPkgDbModify(l, v)
+}
+func easyjson8da5bf1dDecodeGithubComRh5661MatrixToolPkgDbModify1(in *jlexer.Lexer, out *MatrixEntry) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "Id":
+			out.Id = int(in.Int())
+		case "ContractStart":
+			out.ContractStart = string(in.String())
+		case "State":
+			out.State = string(in.String())
+		case "Util":
+			out.Util = string(in.String())
+		case "Zone":
+			out.Zone = string(in.String())
+		case "RateCode":
+			out.RateCode = string(in.String())
+		case "ProductOption":
+			out.ProductOption = string(in.String())
+		case "BillingMethod":
+			out.BillingMethod = string(in.String())
+		case "Term":
+			out.Term = int(in.Int())
+		case "UsageLower":
+			out.UsageLower = float32(in.Float32())
+		case "UsageMiddle":
+			out.UsageMiddle = float32(in.Float32())
+		case "UsageUpper":
+			out.UsageUpper = float32(in.Float32())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson8da5bf1dEncodeGithubComRh5661MatrixToolPkgDbModify1(out *jwriter.Writer, in MatrixEntry) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"Id\":"
+		out.RawString(prefix[1:])
+		out.Int(int(in.Id))
+	}
+	{
+		const prefix string = ",\"ContractStart\":"
+		out.RawString(prefix)
+		out.String(string(in.ContractStart))
+	}
+	{
+		const prefix string = ",\"State\":"
+		out.RawString(prefix)
+		out.String(string(in.State))
+	}
+	{
+		const prefix string = ",\"Util\":"
+		out.RawString(prefix)
+		out.String(string(in.Util))
+	}
+	{
+		const prefix string = ",\"Zone\":"
+		out.RawString(prefix)
+		out.String(string(in.Zone))
+	}
+	{
+		const prefix string = ",\"RateCode\":"
+		out.RawString(prefix)
+		out.String(string(in.RateCode))
+	}
+	{
+		const prefix string = ",\"ProductOption\":"
+		out.RawString(prefix)
+		out.String(string(in.ProductOption))
+	}
+	{
+		const prefix string = ",\"BillingMethod\":"
+		out.RawString(prefix)
+		out.String(string(in.BillingMethod))
+	}
+	{
+		const prefix string = ",\"Term\":"
+		out.RawString(prefix)
+		out.Int(int(in.Term))
+	}
+	{
+		const prefix string = ",\"UsageLower\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.UsageLower))
+	}
+	{
+		const prefix string = ",\"UsageMiddle\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.UsageMiddle))
+	}
+	{
+		const prefix string = ",\"UsageUpper\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.UsageUpper))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v MatrixEntry) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson8da5bf1dEncodeGithubComRh5661MatrixToolPkgDbModify1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v MatrixEntry) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson8da5bf1dEncodeGithubComRh5661MatrixToolPkgDbModify1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *MatrixEntry) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson8da5bf1dDecodeGithubComRh5661MatrixToolPkgDbModify1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *MatrixEntry) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson8da5bf1dDecodeGithubComRh5661MatrixToolPkgDbModify1(l, v)
 }
