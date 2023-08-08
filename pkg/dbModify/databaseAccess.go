@@ -19,10 +19,12 @@ type MatrixEntry struct {
 }
 
 type QueryParameters struct {
-	StartDate   string `json:"startDate"`
-	Util        string `json:"util"`
-	DualBilling bool   `json:"dualBilling"`
-	Terms       []int  `json:"terms"`
+	FilePath    string  `json:"filePath"`
+	Mils        float32 `json:"mils"`
+	StartDate   string  `json:"startDate"`
+	Util        string  `json:"util"`
+	DualBilling bool    `json:"dualBilling"`
+	Terms       []int   `json:"terms"`
 }
 
 var UserParameters = QueryParameters{}
@@ -338,6 +340,14 @@ func writeJson() {
 
 }
 
+func SetFilePath(filePath string) {
+	parameters := ReadJson()
+	LoadParameters(parameters)
+	(UserParameters).FilePath = filePath
+	writeJson()
+	PrintParameters()
+}
+
 func SetStartDate(startDate string) {
 	parameters := ReadJson()
 	LoadParameters(parameters)
@@ -370,21 +380,21 @@ func SetTerms(terms []int) {
 	PrintParameters()
 }
 
-func InsertMargin(entries []MatrixEntry) {
-
+func InsertMargin(entries []MatrixEntry, mils float32) {
 	for i, entry := range entries {
 		entryPtr := &entries[i]
-		entryPtr.UsageLower = calculatePricing(entry.UsageLower)
-		entryPtr.UsageMiddle = calculatePricing(entry.UsageMiddle)
-		entryPtr.UsageUpper = calculatePricing(entry.UsageUpper)
+		entryPtr.UsageLower = calculatePricing(entry.UsageLower, mils)
+		entryPtr.UsageMiddle = calculatePricing(entry.UsageMiddle, mils)
+		entryPtr.UsageUpper = calculatePricing(entry.UsageUpper, mils)
 	}
+
 }
 
-func calculatePricing(initialPrice float32) float32 {
-	price := (initialPrice + 15) / 1000
+func calculatePricing(initialPrice float32, mils float32) float32 {
+	price := (initialPrice + mils) / 1000
 	if initialPrice == 0 {
 		price = 0
-	} else if math.Mod(float64(price), 0.01) <= 0.001 {
+	} else if math.Mod(float64(price), 0.01) <= 0.002 {
 		price = float32(math.Floor(float64(price*100)) / 100)
 		price -= 0.01
 		price += .00998
