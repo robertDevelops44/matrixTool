@@ -4,23 +4,29 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-
+	"github.com/rh5661/matrixTool/pkg/dbModify"
 	"github.com/spf13/cobra"
 )
 
 // showParametersCmd represents the showParameters command
 var showParametersCmd = &cobra.Command{
 	Use:   "showParameters",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Displays current parameters entered",
+	Long: `Displays the parameters that will be used if matrixTool generate is called
+To change these parameters please run the following for more information:
+matrixTool load --help
+matrixTool setStart --help
+matrixTool setUtil --help
+matrixTool setDualBilling --help
+matrixTool setTerms --help
+matrixTool setMils --help`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("showParameters called")
+		params := dbModify.ReadJson()
+		paramsMarshalled, err := json.MarshalIndent(params, "", "	")
+		cobra.CheckErr(err)
+		fmt.Printf("User Parameters:\n%s", paramsMarshalled)
 	},
 }
 
