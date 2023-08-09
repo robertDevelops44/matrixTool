@@ -31,6 +31,10 @@ matrixTool setUtil "APS"`,
 					fmt.Println("Please specify a utility code with the correct format. Run 'matrixTool setUtil --help' for more information.")
 					return
 				}
+				if dbModify.GetUtilByCode(util) == "" {
+					fmt.Println("Utility does not exist. Run matrixTool showUtils for all possible utilities.")
+					return
+				}
 				fmt.Println("The entered utility code is: " + util + "\n")
 			} else {
 				fmt.Println("Please specify a utility code. Run 'matrixTool setUtil --help' for more information.")
