@@ -31,7 +31,7 @@ to quickly create a Cobra application.`,
 		sort.Strings(utilCodes)
 		printString := fmt.Sprintf("%v", utilCodes)
 		printString = strings.TrimSpace(printString[1 : len(printString)-1])
-		fmt.Println(printString + "\n")
+		fmt.Println(" " + printString + "\n")
 	},
 }
 
