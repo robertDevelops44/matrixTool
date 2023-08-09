@@ -32,7 +32,7 @@ func ReadExcelFile(filePath string) {
 	rows, err := workbook.GetRows(mainSheetName)
 	cobra.CheckErr(err)
 	dbModify.ReInitializeDatabase()
-	for _, row := range rows[53:134] { // CHANGE THIS TO ALL ROWS
+	for _, row := range rows[53:] { // CHANGE THIS TO ALL ROWS
 		dbModify.ProcessRow(row)
 	}
 	fmt.Println()
@@ -127,36 +127,40 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	date = strings.ReplaceAll(date, "as of ", "")
 	params := dbModify.ReadJson()
 	var startDate string
-	switch params.StartDate[:3] {
-	case "Jan":
-		startDate = "January"
-	case "Feb":
-		startDate = "February"
-	case "Mar":
-		startDate = "March"
-	case "Apr":
-		startDate = "April"
-	case "May":
-		startDate = "May"
-	case "Jun":
-		startDate = "June"
-	case "Jul":
-		startDate = "July"
-	case "Aug":
-		startDate = "August"
-	case "Sep":
-		startDate = "September"
-	case "Oct":
-		startDate = "October"
-	case "Nov":
-		startDate = "November"
-	case "Dec":
-		startDate = "December"
-	default:
-		startDate = "ERROR"
-		fmt.Println("ERROR: READ START DATE")
+	if params.StartDate != "" {
+		switch params.StartDate[:3] {
+		case "Jan":
+			startDate = "January"
+		case "Feb":
+			startDate = "February"
+		case "Mar":
+			startDate = "March"
+		case "Apr":
+			startDate = "April"
+		case "May":
+			startDate = "May"
+		case "Jun":
+			startDate = "June"
+		case "Jul":
+			startDate = "July"
+		case "Aug":
+			startDate = "August"
+		case "Sep":
+			startDate = "September"
+		case "Oct":
+			startDate = "October"
+		case "Nov":
+			startDate = "November"
+		case "Dec":
+			startDate = "December"
+		default:
+			startDate = "ERROR"
+			fmt.Println("ERROR: READ START DATE")
+		}
+		startDate += " 20" + params.StartDate[4:]
+	} else {
+		startDate = "ALL START"
 	}
-	startDate += " 20" + params.StartDate[4:]
 	infoText := fmt.Sprintf("%s %s Start (%s)", params.Util, startDate, date)
 	infoStartCell := "A" + strconv.Itoa(startRowIndex)
 	infoEndCell := "K" + strconv.Itoa(startRowIndex+3)
