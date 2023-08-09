@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/rh5661/matrixTool/pkg/dbModify"
 	"github.com/spf13/cobra"
-	"regexp"
+	"strings"
 )
 
 // setUtilCmd represents the setUtil command
@@ -19,18 +19,13 @@ var (
 		Short: "Set the parameter for utility",
 		Long: `Utility entered will be updated to inputted parameter
 Any Reports generated will be under this utility
-Please enter the utility short code (all-capitalized): "APS" rather than "Potomac Edison"
+Please enter the utility short code: "APS" rather than "Potomac Edison"
+Run matrixTool showUtils for all possible utilities.
 Example usage:
 matrixTool setUtil "APS"`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if util == "" && len(args) != 0 {
-				util = args[0]
-				regex := regexp.MustCompile("^[A-Z]+$")
-				res := regex.MatchString(util)
-				if !res {
-					fmt.Println("Please specify a utility code with the correct format. Run 'matrixTool setUtil --help' for more information.")
-					return
-				}
+				util = strings.ToUpper(args[0])
 				if dbModify.GetUtilByCode(util) == "" {
 					fmt.Println("Utility does not exist. Run matrixTool showUtils for all possible utilities.")
 					return
