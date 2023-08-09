@@ -14,13 +14,17 @@ import (
 // generateCmd represents the generate command
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Creates a new sheet with filtered pricing and margin",
+	Long: `Edits the excel file at the filepath in parameters.json in the filePath 
+Creates a new sheet with the name "{StartDate}{Util}{CurrentTime}"
+The pricing will be filtered based on the entered parameters.
+Margin will be inserted based on entered parameters and adjusted accordingly.
+An info box will be generated below the pricing sheeting with Util,Start Date, Date of Matrix Used.
+NOTE: Please make sure data is loaded into database before generating any reports
+Run matrixTool load --help for more information
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Example usage:
+matrixTool generate`,
 	Run: func(cmd *cobra.Command, args []string) {
 		parameters := dbModify.ReadJson()
 		filePathExcel := parameters.FilePath
@@ -31,8 +35,6 @@ to quickly create a Cobra application.`,
 			return
 		}
 
-		excel.ReadExcelFile(filePathExcel)
-		fmt.Println("\nFinished loading")
 		entries := dbModify.GetFilteredEntries()
 		dbModify.InsertMargin(entries, parameters.Mils)
 		fmt.Println()
