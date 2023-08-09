@@ -11,9 +11,15 @@ import (
 	"time"
 )
 
+// mainSheetName default name for pricing sheet in Excel file
 const mainSheetName = "Daily Matrix Price For All Term"
 
+// ReadExcelFile
+//
+//	@Description: read Excel file, parse all entries, insert into db
+//	@param filePath
 func ReadExcelFile(filePath string) {
+	// open Excel file
 	workbook, err := excelize.OpenFile(filePath)
 	cobra.CheckErr(err)
 
@@ -22,6 +28,7 @@ func ReadExcelFile(filePath string) {
 		cobra.CheckErr(err)
 	}(workbook)
 
+	// re-style workbook for data retrieval
 	var style excelize.Style
 	theStyle := &style
 	(theStyle).NumFmt = 17
@@ -31,44 +38,22 @@ func ReadExcelFile(filePath string) {
 	cobra.CheckErr(err)
 	rows, err := workbook.GetRows(mainSheetName)
 	cobra.CheckErr(err)
+	// reset db
 	dbModify.ReInitializeDatabase()
+	// insert processed Excel data
 	for _, row := range rows[53:] { // CHANGE THIS TO ALL ROWS
 		dbModify.ProcessRow(row)
 	}
 	fmt.Println()
-
-	//db, openErr := sql.Open("sqlite", "./data.db")
-	//cobra.CheckErr(openErr)
-	//
-	//defer func(db *sql.DB) {
-	//	err := db.Close()
-	//	cobra.CheckErr(err)
-	//}(db)
-	//
-	////var param interface{}
-	////param = true
-	//query := `SELECT * FROM matrix WHERE contract_start = ? `
-	//query += `AND billing_method != ?`
-	//row, err := db.Query(query, "Jul-23", "Dual")
-	//cobra.CheckErr(err)
-	//entry := dbModify.MatrixEntry{}
-	//defer func(row *sql.Rows) {
-	//	err := row.Close()
-	//	if err != nil {
-	//		fmt.Println(err)
-	//	}
-	//}(row)
-	//for row.Next() {
-	//	err := row.Scan(&entry.Id, &entry.ContractStart, &entry.State, &entry.Util, &entry.Zone, &entry.RateCode, &entry.ProductOption, &entry.BillingMethod, &entry.Term, &entry.UsageLower, &entry.UsageMiddle, &entry.UsageUpper)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//	}
-	//	fmt.Println(entry)
-	//}
-
 }
 
+// WriteReport
+//
+//	@Description: create new sheet in Excel file and generate pricing with broker fee
+//	@param filePath
+//	@param entries
 func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
+	// open Excel file
 	workbook, err := excelize.OpenFile(filePath)
 	cobra.CheckErr(err)
 
@@ -77,8 +62,10 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 		cobra.CheckErr(err)
 	}(workbook)
 
+	// get parameters, current time
 	userParameters := dbModify.ReadJson()
 	datetime := time.Now()
+	// create new sheet with unique sheet name
 	sheetName := fmt.Sprintf("%s%s%s-%s-%s", userParameters.StartDate, userParameters.Util, strconv.Itoa(datetime.Hour()), strconv.Itoa(datetime.Minute()), strconv.Itoa(datetime.Second()))
 	_, err = workbook.NewSheet(sheetName)
 	if err != nil {
@@ -88,6 +75,7 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	}
 	fmt.Println("Sheet created: " + sheetName)
 
+	// set sheet sizing
 	err = workbook.SetColWidth(sheetName, "A", "A", 9)
 	err = workbook.SetColWidth(sheetName, "B", "B", 9)
 	err = workbook.SetColWidth(sheetName, "C", "C", 9)
@@ -102,6 +90,7 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	err = workbook.SetRowHeight(sheetName, 1, 45)
 	fmt.Println("Sizing set...")
 
+	// set sheet base styling
 	borders := []excelize.Border{{Type: "top", Color: "#000000", Style: 1}, {Type: "left", Color: "#000000", Style: 1}, {Type: "right", Color: "#000000", Style: 1}, {Type: "bottom", Color: "#000000", Style: 1}}
 	style, err := workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Family: "Calibri"}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
 	err = workbook.SetColStyle(sheetName, "A:K", style)
@@ -109,10 +98,12 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	err = workbook.SetCellStyle(sheetName, "A1", "K1", style)
 	fmt.Println("Styles set...")
 
+	// insert headers
 	headers := []string{"Contract Start Month", "State", "Utility", "Zone", "Rate Code(s)", "Product Special Options", "Billing Method", "Term", "0 - 49", "50 - 299", "300 - 1099"}
 	err = workbook.SetSheetRow(sheetName, "A1", &headers)
 	fmt.Println("Headers inserted...")
 
+	// insert pricing entries
 	startRowIndex := 2
 	for _, entry := range entries {
 		err = workbook.SetRowHeight(sheetName, startRowIndex, 90)
@@ -123,6 +114,7 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 		startRowIndex++
 	}
 
+	// get date and input text declaring Utility, Start Month/Year, and date of matrix pricing
 	date, err := workbook.GetCellValue(mainSheetName, "A3")
 	date = strings.ReplaceAll(date, "as of ", "")
 	params := dbModify.ReadJson()
@@ -170,6 +162,7 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	err = workbook.SetSheetRow(sheetName, infoStartCell, &[]interface{}{infoText})
 	fmt.Println("Info text inserted...")
 
+	// save file
 	err = workbook.Save()
 	cobra.CheckErr(err)
 	fmt.Println("File Saved at: " + filePath)

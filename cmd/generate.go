@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 ROBERT HUANG
 */
 package cmd
 
@@ -22,12 +22,16 @@ Margin will be inserted based on entered parameters and adjusted accordingly.
 An info box will be generated below the pricing sheeting with Util,Start Date, Date of Matrix Used.
 NOTE: Please make sure data is loaded into database before generating any reports
 Run matrixTool load --help for more information
+IMPORTANT: Excel file being modified must be closed while generating a report/pricing sheet
 
 Example usage:
 matrixTool generate`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// get filepath of excel file
 		parameters := dbModify.ReadJson()
 		filePathExcel := parameters.FilePath
+
+		// make sure filepath is not blank
 		if filePathExcel != "" {
 			fmt.Println("The filePath of the excel file is: " + filePathExcel + "\n")
 		} else {
@@ -35,27 +39,19 @@ matrixTool generate`,
 			return
 		}
 
+		// fetch filtered pricing and add margin
 		entries := dbModify.GetFilteredEntries()
 		dbModify.InsertMargin(entries, parameters.Mils)
 		fmt.Println()
+		// print each pricing entry
 		for _, entry := range entries {
 			fmt.Printf("%+v\n", entry)
 		}
+		// create sheet in Excel file & populate with data
 		excel.WriteReport(filePathExcel, entries)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(generateCmd)
-	//loadCmd.PersistentFlags().StringVarP(&filePathExcel, "filePathExcel", "", "", "[Required] Set filepath of matrix pricing Excel file to be parsed")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

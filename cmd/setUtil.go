@@ -19,13 +19,15 @@ var (
 		Short: "Set the parameter for utility",
 		Long: `Utility entered will be updated to inputted parameter
 Any Reports generated will be under this utility
-Please enter the utility short code: "APS" rather than "Potomac Edison"
+Please enter the utility shorthand code: "APS" rather than "Potomac Edison"
 Run matrixTool showUtils for all possible utilities.
 Example usage:
 matrixTool setUtil "APS"`,
 		Run: func(cmd *cobra.Command, args []string) {
+			// check if args exist
 			if util == "" && len(args) != 0 {
 				util = strings.ToUpper(args[0])
+				// check if util code is valid
 				if dbModify.GetUtilByCode(util) == "" {
 					fmt.Println("Utility does not exist. Run matrixTool showUtils for all possible utilities.")
 					return
@@ -35,8 +37,8 @@ matrixTool setUtil "APS"`,
 				fmt.Println("Please specify a utility code. Run 'matrixTool setUtil --help' for more information.")
 				return
 			}
+			// update parameters
 			dbModify.SetUtil(util)
-
 		},
 	}
 )
@@ -44,14 +46,4 @@ matrixTool setUtil "APS"`,
 func init() {
 	rootCmd.AddCommand(setUtilCmd)
 	rootCmd.PersistentFlags().StringVarP(&util, "util", "", "", "[Required] Set utility of matrix pricing desired")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// setUtilCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// setUtilCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

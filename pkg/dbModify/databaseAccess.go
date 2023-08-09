@@ -11,6 +11,9 @@ import (
 	"strconv"
 )
 
+// MatrixEntry
+//
+//	@Description: struct to store matrix pricing entry
 type MatrixEntry struct {
 	Id                                                                       int
 	ContractStart, State, Util, Zone, RateCode, ProductOption, BillingMethod string
@@ -18,16 +21,26 @@ type MatrixEntry struct {
 	UsageLower, UsageMiddle, UsageUpper                                      float32
 }
 
+// QueryParameters
+//
+//	@Description: struct to store parameters
 type QueryParameters struct {
-	FilePath    string  `json:"filePath"`
-	Mils        float32 `json:"mils"`
-	StartDate   string  `json:"startDate"`
-	Util        string  `json:"util"`
-	DualBilling bool    `json:"dualBilling"`
-	Terms       []int   `json:"terms"`
+	FilePath    string  `json:"filePath"`    // file path of Excel file
+	Mils        float32 `json:"mils"`        // broker fee for report
+	StartDate   string  `json:"startDate"`   // contract start month/year
+	Util        string  `json:"util"`        // utility code
+	DualBilling bool    `json:"dualBilling"` // include dual billing
+	Terms       []int   `json:"terms"`       // terms to include
 }
 
+// UserParameters
+//
+//	@Description: var to store parameters with each instance
 var UserParameters = QueryParameters{}
+
+// UtilCodes
+//
+//	@Description: map of all valid utility codes and names
 var UtilCodes = map[string]string{
 	"AECO":    "Atlantic City Electric Company",
 	"APS":     "Potomac Edison - Allegheny Power",
@@ -76,8 +89,15 @@ var UtilCodes = map[string]string{
 	"WPP":     "Allegheny Power WPP",
 }
 
+// parametersFilePath dataSourcePath
+//
+//	@Description: file paths for persistent data storage
 const parametersFilePath = "./parameters.json"
 const dataSourcePath = "./data.db"
+
+// dbInitSQL
+//
+//	@Description: sql statement for initializing the database
 const dbInitSQL string = `
 
 CREATE TABLE IF NOT EXISTS matrix (
@@ -95,15 +115,15 @@ CREATE TABLE IF NOT EXISTS matrix (
 	usage_upper 		FLOAT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS util_codes (
-    id				INTEGER NOT NULL PRIMARY KEY,
-    util_code		TEXT NOT NULL,
-	util_name		TEXT NOT NULL
-);
 `
 
+// ProcessRow
+//
+//	@Description: inserts Excel row of pricing into db
+//	@param row
+//	@return bool
 func ProcessRow(row []string) bool {
-
+	// format row
 	var contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper string
 
 	contractStart = row[0]
@@ -118,6 +138,7 @@ func ProcessRow(row []string) bool {
 	usageMiddle = row[9]
 	usageUpper = row[10]
 
+	// open db
 	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
 
@@ -126,6 +147,7 @@ func ProcessRow(row []string) bool {
 		cobra.CheckErr(err)
 	}(db)
 
+	//insert into db
 	insertSQL := `INSERT INTO matrix (contract_start, state_code, util_code, util_zone, util_rate_code, product_option, billing_method, contract_term, usage_lower, usage_middle, usage_upper) 
 	VALUES (?,?,?,?,?,?,?,?,?,?,?);`
 	stmt, err := db.Prepare(insertSQL)
@@ -140,12 +162,18 @@ func ProcessRow(row []string) bool {
 	return true
 }
 
+// GetFilteredEntries
+//
+//	@Description: retrieve for all pricing entries in db based on parameters and convert to MatrixEntry structs
+//	@return []MatrixEntry
 func GetFilteredEntries() []MatrixEntry {
 	fmt.Println(`Getting filtered entries...`)
 
+	// load params
 	userParameters := ReadJson()
 	LoadParameters(userParameters)
 
+	// open db
 	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
 
@@ -154,6 +182,7 @@ func GetFilteredEntries() []MatrixEntry {
 		cobra.CheckErr(err)
 	}(db)
 
+	// construct query string
 	numParams := 0
 	var paramsToInsert []string
 	querySQL := `SELECT * FROM matrix WHERE `
@@ -164,21 +193,23 @@ func GetFilteredEntries() []MatrixEntry {
 	fmt.Println("\nStart Date: " + UserParameters.StartDate)
 	if UserParameters.StartDate != "" {
 		querySQL += `contract_start = ? AND `
-		//startParam = UserParameters.StartDate
 		paramsToInsert = append(paramsToInsert, UserParameters.StartDate)
 		numParams++
 	}
+
 	fmt.Println("Util: " + UserParameters.Util)
 	if UserParameters.Util != "" {
 		querySQL += `util_code = ? AND `
 		paramsToInsert = append(paramsToInsert, UserParameters.Util)
 		numParams++
 	}
+
 	fmt.Println("Dual Billing: " + strconv.FormatBool(UserParameters.DualBilling))
 	if !(UserParameters.DualBilling) {
 		querySQL += `billing_method != 'Dual' AND `
 	}
 	termsString, err := ffjson.Marshal(UserParameters.Terms)
+
 	fmt.Println("Terms: " + string(termsString))
 	if len(UserParameters.Terms) == 4 {
 		querySQL += `contract_term IN (?,?,?,?);`
@@ -221,6 +252,7 @@ func GetFilteredEntries() []MatrixEntry {
 
 	var entries []MatrixEntry
 
+	// go through rows and turn into Matrix Entry struct
 	for rows.Next() {
 		entry := MatrixEntry{}
 		err := rows.Scan(&entry.Id, &entry.ContractStart, &entry.State, &entry.Util, &entry.Zone, &entry.RateCode, &entry.ProductOption, &entry.BillingMethod, &entry.Term, &entry.UsageLower, &entry.UsageMiddle, &entry.UsageUpper)
@@ -234,6 +266,9 @@ func GetFilteredEntries() []MatrixEntry {
 
 }
 
+// InitializeDatabase
+//
+//	@Description: initialize db - create table
 func InitializeDatabase() {
 	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
@@ -246,6 +281,9 @@ func InitializeDatabase() {
 	cobra.CheckErr(err)
 }
 
+// ReInitializeDatabase
+//
+//	@Description: initialize db with drop table statement
 func ReInitializeDatabase() {
 	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
@@ -259,15 +297,26 @@ func ReInitializeDatabase() {
 	cobra.CheckErr(err)
 }
 
+// LoadParameters
+//
+//	@Description: load parameters into variable UserParameters
+//	@param newParameters
 func LoadParameters(newParameters QueryParameters) {
 	UserParameters = newParameters
 	PrintParameters()
 }
 
+// PrintParameters
+//
+//	@Description: print formatted parameters
 func PrintParameters() {
-	fmt.Printf("User Parameters:\n%#v", UserParameters)
+	fmt.Printf("User Parameters:\n%v\n", UserParameters)
 }
 
+// ReadJson
+//
+//	@Description: read parameters json file and convert to QueryParameters struct
+//	@return QueryParameters
 func ReadJson() QueryParameters {
 	data, err := os.ReadFile(parametersFilePath)
 	if err != nil {
@@ -283,6 +332,9 @@ func ReadJson() QueryParameters {
 	return *defaultParameters
 }
 
+// writeJson
+//
+//	@Description: write/update UserParameters into parameters json file
 func writeJson() {
 	data, err := easyjson.Marshal(UserParameters)
 	cobra.CheckErr(err)
@@ -292,6 +344,10 @@ func writeJson() {
 
 }
 
+// SetFilePath
+//
+//	@Description: updates FilePath in UserParameters - filepath of Excel file
+//	@param filePath
 func SetFilePath(filePath string) {
 	parameters := ReadJson()
 	fmt.Println("Old:")
@@ -302,16 +358,10 @@ func SetFilePath(filePath string) {
 	PrintParameters()
 }
 
-func SetStartDate(startDate string) {
-	parameters := ReadJson()
-	fmt.Println("Old:")
-	LoadParameters(parameters)
-	(UserParameters).StartDate = startDate
-	writeJson()
-	fmt.Println("New:")
-	PrintParameters()
-}
-
+// SetMils
+//
+//	@Description: updates Mils in UserParameters - broker fee
+//	@param mils
 func SetMils(mils float32) {
 	parameters := ReadJson()
 	fmt.Println("Old:")
@@ -322,6 +372,24 @@ func SetMils(mils float32) {
 	PrintParameters()
 }
 
+// SetStartDate
+//
+//	@Description: updates StartDate in UserParameters - contract start month/year
+//	@param startDate
+func SetStartDate(startDate string) {
+	parameters := ReadJson()
+	fmt.Println("Old:")
+	LoadParameters(parameters)
+	(UserParameters).StartDate = startDate
+	writeJson()
+	fmt.Println("New:")
+	PrintParameters()
+}
+
+// SetUtil
+//
+//	@Description: update Util in UserParameters - utility code
+//	@param util
 func SetUtil(util string) {
 	parameters := ReadJson()
 	fmt.Println("Old:")
@@ -332,6 +400,10 @@ func SetUtil(util string) {
 	PrintParameters()
 }
 
+// SetDualBilling
+//
+//	@Description: update DualBilling in UserParameters - include dual billing
+//	@param dualBilling
 func SetDualBilling(dualBilling bool) {
 	parameters := ReadJson()
 	fmt.Println("Old:")
@@ -342,6 +414,10 @@ func SetDualBilling(dualBilling bool) {
 	PrintParameters()
 }
 
+// SetTerms
+//
+//	@Description: update Terms in UserParameters - terms to include
+//	@param terms
 func SetTerms(terms []int) {
 	parameters := ReadJson()
 	fmt.Println("Old:")
@@ -352,7 +428,13 @@ func SetTerms(terms []int) {
 	PrintParameters()
 }
 
+// InsertMargin
+//
+//	@Description: adds margin to each entry in a []MatrixEntry and adjusts price accordingly
+//	@param entries
+//	@param mils
 func InsertMargin(entries []MatrixEntry, mils float32) {
+	// update all 3 prices in each entry
 	for i, entry := range entries {
 		entryPtr := &entries[i]
 		entryPtr.UsageLower = calculatePricing(entry.UsageLower, mils)
@@ -361,11 +443,18 @@ func InsertMargin(entries []MatrixEntry, mils float32) {
 	}
 }
 
+// calculatePricing
+//
+//	@Description: calculates and produces price given broker fee, adjusts if needed
+//	@param initialPrice
+//	@param mils
+//	@return float32
 func calculatePricing(initialPrice float32, mils float32) float32 {
 	price := (initialPrice + mils) / 1000
 	if initialPrice == 0 {
 		price = 0
-	} else if math.Mod(float64(price), 0.01) <= 0.002 {
+	} else if math.Mod(float64(price), 0.01) <= 0.002 { // if the 1000th place is a 0 or 1 - 0.12053, 0.09022
+		// round down to 0.xx998 	- 	0.12053 -> 0.11998
 		price = float32(math.Floor(float64(price*100)) / 100)
 		price -= 0.01
 		price += .00998
@@ -373,6 +462,11 @@ func calculatePricing(initialPrice float32, mils float32) float32 {
 	return price
 }
 
+// GetUtilByCode
+//
+//	@Description: get utility name by shorthand code
+//	@param code
+//	@return string
 func GetUtilByCode(code string) string {
 	return UtilCodes[code]
 }

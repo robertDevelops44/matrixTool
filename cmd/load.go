@@ -19,10 +19,12 @@ var (
 		Use:   "load",
 		Short: "Loads matrix excel file into database",
 		Long: `Excel filepath inserted will be parsed and injected into database
-Please specify the absolute filepath from the root
+Please specify the absolute filepath from the root (Example: C:\)
+NOTE: Filepath can be acquired by right clicking the file, Ctrl+Shift+C, or dragging the file into the terminal window to paste the path
 Example usage:
 matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"`,
 		Run: func(cmd *cobra.Command, args []string) {
+			// check if args provided
 			if filePath == "" && len(args) != 0 {
 				filePath = args[0]
 				fmt.Println("The entered filePath is: " + filePath + "\n")
@@ -31,6 +33,7 @@ matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"
 				return
 			}
 
+			// update parameters and load data from Excel file into db
 			dbModify.SetFilePath(filePath)
 			excel.ReadExcelFile(filePath)
 			fmt.Println("\nFinished loading")
@@ -40,14 +43,5 @@ matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"
 
 func init() {
 	rootCmd.AddCommand(loadCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
 	loadCmd.PersistentFlags().StringVarP(&filePath, "filePath", "", "", "[Required] Set filepath of matrix pricing Excel file to be parsed")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// loadCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 ROBERT HUANG
 */
 package cmd
 
@@ -15,7 +15,7 @@ var showParametersCmd = &cobra.Command{
 	Use:   "showParameters",
 	Short: "Displays current parameters entered",
 	Long: `Displays the parameters that will be used if matrixTool generate is called
-To change these parameters please run the following for more information:
+To change these parameters, please run the following for more information:
 matrixTool load --help
 matrixTool setStart --help
 matrixTool setUtil --help
@@ -23,6 +23,7 @@ matrixTool setDualBilling --help
 matrixTool setTerms --help
 matrixTool setMils --help`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// get parameters, format, print
 		params := dbModify.ReadJson()
 		paramsMarshalled, err := json.MarshalIndent(params, "", "	")
 		cobra.CheckErr(err)

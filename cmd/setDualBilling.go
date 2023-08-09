@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 ROBERT HUANG
 */
 package cmd
 
@@ -22,14 +22,16 @@ var (
 		Long: `Dual Billing inclusion will be updated to inputted parameter
 Any Reports generated will be under this parameter
 Yes/True will include Dual Billing, No/False will generate a report without dual billing
-Please write the parameter in the format "True""/"False", "T"/"F"", "Yes"/"No", or "Y"/"N"
+Please write the parameter in the format True/False, T/F, Yes/No, or Y/N
 Example usage:
 matrixTool setDualBilling "No"
 matrixTool setDualBilling "true"
 matrixTool setDualBilling "T"`,
 
 		Run: func(cmd *cobra.Command, args []string) {
+			// check if args provided
 			if dualBilling == "" && len(args) != 0 {
+				// set dualBilling parameter appropriately
 				dualBilling := strings.ToLower(args[0])
 				if dualBilling == "false" || dualBilling == "f" || dualBilling == "no" || dualBilling == "n" {
 					dualParam = false
@@ -45,6 +47,7 @@ matrixTool setDualBilling "T"`,
 				fmt.Println("Please specify a dual billing option. Run 'matrixTool setUtil --help' for more information.")
 				return
 			}
+			// update parameters
 			dbModify.SetDualBilling(dualParam)
 		},
 	}
@@ -53,14 +56,4 @@ matrixTool setDualBilling "T"`,
 func init() {
 	rootCmd.AddCommand(setDualBillingCmd)
 	rootCmd.PersistentFlags().StringVarP(&dualBilling, "dualBilling", "", "", "[Required] Set dualBilling inclusion of matrix pricing desired")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// setDualBillingCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// setDualBillingCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

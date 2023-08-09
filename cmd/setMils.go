@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
+Copyright © 2023 ROBERT HUANG
 */
 package cmd
 
@@ -16,23 +16,23 @@ var (
 
 	setMilsCmd = &cobra.Command{
 		Use:   "setMils",
-		Short: "A brief description of your command",
-		Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+		Short: "Set the parameter for the broker fee in mils",
+		Long: `Broker fee will be updated to inputted parameter
+Any Reports generated will include this fee and will be adjusted accordingly
+Example usage:
+matrixTool setMils "15"`,
 		Run: func(cmd *cobra.Command, args []string) {
+			// check if args exist
 			if milsString == "" && len(args) != 0 {
 				milsString = args[0]
 				mils, err := strconv.ParseFloat(milsString, 32)
+				// if cannot parse from string
 				if err != nil {
 					fmt.Println("Please enter a valid number. Run matrixTool setMils --help for more information.")
 					return
 				}
+				// update parameters
 				dbModify.SetMils(float32(mils))
-
 				fmt.Println("The entered amount of mils is: " + milsString + "\n")
 			} else {
 				fmt.Println("Please specify a mils. Run 'matrixTool setMils --help' for more information.")
@@ -44,15 +44,5 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(setMilsCmd)
-	setMilsCmd.PersistentFlags().StringVarP(&milsString, "milsString", "", "", "[Required] Set mils of matrix pricing desired")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// setMilsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// setMilsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	setMilsCmd.PersistentFlags().StringVarP(&milsString, "milsString", "", "", "[Required] Set broker fee of matrix pricing desired")
 }
