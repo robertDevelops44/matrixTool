@@ -35,8 +35,9 @@ matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"
 			}
 
 			// update parameters and load data from Excel file into db
-			dbModify.SetFilePath(filePath)
+
 			excel.ReadExcelFile(filePath)
+			dbModify.SetFilePath(filePath)
 			fmt.Println("\nFinished loading")
 		},
 	}

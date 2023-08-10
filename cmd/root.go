@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Use:     "matrixTool",
 	Version: "1.0.0",
 	Short:   "Tool for producing filtered matrix pricing",
-	Long:    `REPLACE WITH COMPLETE DESC.`,
+	Long:    `matrixTool is a CLI application that takes an Excel file with matrix pricing and produces filtered pricing with custom broker fee and adjustments.`,
 }
 
 func Execute() {
