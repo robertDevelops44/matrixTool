@@ -23,6 +23,7 @@ An info box will be generated below the pricing sheeting with Util,Start Date, D
 NOTE: Please make sure data is loaded into database before generating any reports
 Run matrixTool load --help for more information
 IMPORTANT: Excel file being modified must be closed while generating a report/pricing sheet
+Make sure the Daily Matrix Price Report sheet is named: "Daily Matrix Price For All Term"
 
 Example usage:
 matrixTool generate`,

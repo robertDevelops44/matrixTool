@@ -21,6 +21,7 @@ var (
 		Long: `Excel filepath inserted will be parsed and injected into database
 Please specify the absolute filepath from the root (Example: C:\)
 NOTE: Filepath can be acquired by right clicking the file, Ctrl+Shift+C, or dragging the file into the terminal window to paste the path
+IMPORTANT: Make sure the Daily Matrix Price Report sheet is named: "Daily Matrix Price For All Term"
 Example usage:
 matrixTool load "C:\Users\Robert\Downloads\Daily Matrix Price For All Term.xlsx"`,
 		Run: func(cmd *cobra.Command, args []string) {
