@@ -21,7 +21,10 @@ const mainSheetName = "Daily Matrix Price For All Term"
 func ReadExcelFile(filePath string) {
 	// open Excel file
 	workbook, err := excelize.OpenFile(filePath)
-	cobra.CheckErr(err)
+	if err != nil {
+		fmt.Println("ERROR: Make sure the Excel file is closed before running the command! See matrixTool generate --help for more information")
+		os.Exit(1)
+	}
 
 	defer func(workbook *excelize.File) {
 		err := workbook.Close()
@@ -169,20 +172,31 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	infoStartCell := "A" + strconv.Itoa(rowIndex)
 	infoEndCell := "K" + strconv.Itoa(rowIndex+3)
 	err = workbook.MergeCell(sheetName, infoStartCell, infoEndCell)
-	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 28, Bold: true}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
+	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 24, Bold: true}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
 	err = workbook.SetCellStyle(sheetName, infoStartCell, infoStartCell, style)
 	err = workbook.SetSheetRow(sheetName, infoStartCell, &[]interface{}{infoText})
+
+	//insert util name
+	utilStartCell := "A" + strconv.Itoa(rowIndex+4)
+	utilEndCell := "K" + strconv.Itoa(rowIndex+6)
+	err = workbook.MergeCell(sheetName, utilStartCell, utilEndCell)
+	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 20, Bold: true}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
+	utilName := dbModify.GetUtilByCode(params.Util)
+	err = workbook.SetCellStyle(sheetName, utilStartCell, utilStartCell, style)
+	err = workbook.SetSheetRow(sheetName, utilStartCell, &[]interface{}{utilName})
+
 	fmt.Println("Info text inserted...")
 
 	// clean up styling
 	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Family: "Calibri"}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}})
-	err = workbook.SetRowStyle(sheetName, rowIndex+4, rowIndex+54, style)
+	err = workbook.SetRowStyle(sheetName, rowIndex+7, rowIndex+54, style)
 	err = workbook.SetColStyle(sheetName, "L:P", style)
 
 	// save file
 	err = workbook.Save()
 	if err != nil {
-		fmt.Println("Make sure the Excel file is closed before running the command. See matrixTool generate --help for more information")
+		fmt.Println("ERROR: Make sure the Excel file is closed before running the command! See matrixTool generate --help for more information")
+		os.Exit(1)
 	}
 	fmt.Println("File Saved at: " + filePath)
 
