@@ -27,7 +27,7 @@ IMPORTANT: Excel file being modified must be closed while generating a report/pr
 Example usage:
 matrixTool generate`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// get filepath of excel file
+		// get filepath of Excel file
 		parameters := dbModify.ReadJson()
 		filePathExcel := parameters.FilePath
 
