@@ -68,7 +68,7 @@ var UtilCodes = map[string]string{
 	"METED":   "Metropolitan Edison Company",
 	"MSEL":    "National Grid - Massachusetts Electric Company",
 	"MWST":    "Eversource - Western Massachusetts Electric",
-	"NECO":    "National Grid - Narragansett Electric",
+	"NECO":    "Rhode Island Energy",
 	"NHEC":    "New Hampshire Electric Co",
 	"NIMO":    "National Grid - Niagara Mohawk",
 	"NYOR":    "Orange and Rockland",
