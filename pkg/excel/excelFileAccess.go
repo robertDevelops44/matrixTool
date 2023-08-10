@@ -87,6 +87,11 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	err = workbook.SetColWidth(sheetName, "I", "I", 9)
 	err = workbook.SetColWidth(sheetName, "J", "J", 9)
 	err = workbook.SetColWidth(sheetName, "K", "K", 9)
+	err = workbook.SetColWidth(sheetName, "L", "L", 50)
+	err = workbook.SetColWidth(sheetName, "M", "M", 50)
+	err = workbook.SetColWidth(sheetName, "N", "N", 50)
+	err = workbook.SetColWidth(sheetName, "O", "O", 50)
+	err = workbook.SetColWidth(sheetName, "P", "P", 50)
 	err = workbook.SetRowHeight(sheetName, 1, 45)
 	fmt.Println("Sizing set...")
 
@@ -103,18 +108,24 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	err = workbook.SetSheetRow(sheetName, "A1", &headers)
 	fmt.Println("Headers inserted...")
 
+	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Family: "Calibri"}, Fill: excelize.Fill{Type: "pattern", Color: []string{"#eeeeee"}, Pattern: 1}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
+
 	// insert pricing entries
-	startRowIndex := 2
+	rowIndex := 2
 	for _, entry := range entries {
-		err = workbook.SetRowHeight(sheetName, startRowIndex, 90)
-		startCell := "A" + strconv.Itoa(startRowIndex)
+		err = workbook.SetRowHeight(sheetName, rowIndex, 90)
+		startCell := "A" + strconv.Itoa(rowIndex)
 		entrySlice := []string{entry.ContractStart, entry.State, entry.Util, entry.Zone, entry.RateCode, entry.ProductOption, entry.BillingMethod, strconv.Itoa(entry.Term), fmt.Sprintf("%.5f", entry.UsageLower), fmt.Sprintf("%.5f", entry.UsageMiddle), fmt.Sprintf("%.5f", entry.UsageUpper)}
+		// alternate colors for easier reading
+		if rowIndex%2 == 1 {
+			err = workbook.SetRowStyle(sheetName, rowIndex, rowIndex, style)
+		}
 		err = workbook.SetSheetRow(sheetName, startCell, &entrySlice)
 		fmt.Println("Entry inserted: " + startCell)
-		startRowIndex++
+		rowIndex++
 	}
 
-	// get date and input text declaring Utility, Start Month/Year, and date of matrix pricing
+	// get date and create text declaring Utility, Start Month/Year, and date of matrix pricing
 	date, err := workbook.GetCellValue(mainSheetName, "A3")
 	date = strings.ReplaceAll(date, "as of ", "")
 	params := dbModify.ReadJson()
@@ -153,18 +164,26 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	} else {
 		startDate = "ALL START"
 	}
+	// insert text
 	infoText := fmt.Sprintf("%s %s Start (%s)", params.Util, startDate, date)
-	infoStartCell := "A" + strconv.Itoa(startRowIndex)
-	infoEndCell := "K" + strconv.Itoa(startRowIndex+3)
+	infoStartCell := "A" + strconv.Itoa(rowIndex)
+	infoEndCell := "K" + strconv.Itoa(rowIndex+3)
 	err = workbook.MergeCell(sheetName, infoStartCell, infoEndCell)
-	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 28, Bold: true}})
-	err = workbook.SetCellStyle(sheetName, infoStartCell, infoEndCell, style)
+	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 28, Bold: true}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}, Border: borders})
+	err = workbook.SetCellStyle(sheetName, infoStartCell, infoStartCell, style)
 	err = workbook.SetSheetRow(sheetName, infoStartCell, &[]interface{}{infoText})
 	fmt.Println("Info text inserted...")
 
+	// clean up styling
+	style, err = workbook.NewStyle(&excelize.Style{Font: &excelize.Font{Size: 11, Family: "Calibri"}, Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center", WrapText: true}})
+	err = workbook.SetRowStyle(sheetName, rowIndex+4, rowIndex+54, style)
+	err = workbook.SetColStyle(sheetName, "L:P", style)
+
 	// save file
 	err = workbook.Save()
-	cobra.CheckErr(err)
+	if err != nil {
+		fmt.Println("Make sure the Excel file is closed before running the command. See matrixTool generate --help for more information")
+	}
 	fmt.Println("File Saved at: " + filePath)
 
 }
