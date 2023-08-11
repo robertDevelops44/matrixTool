@@ -22,7 +22,7 @@ func ReadExcelFile(filePath string) {
 	// open Excel file
 	workbook, err := excelize.OpenFile(filePath)
 	if err != nil {
-		fmt.Println("ERROR: Make sure the Excel file is closed before running the command! See matrixTool generate --help for more information")
+		fmt.Printf("ERROR: %s! See matrixTool load --help for more information", err)
 		os.Exit(1)
 	}
 
@@ -195,7 +195,7 @@ func WriteReport(filePath string, entries []dbModify.MatrixEntry) {
 	// save file
 	err = workbook.Save()
 	if err != nil {
-		fmt.Println("ERROR: Make sure the Excel file is closed before running the command! See matrixTool generate --help for more information")
+		fmt.Printf("ERROR: %s! See matrixTool generate --help for more information", err)
 		os.Exit(1)
 	}
 	fmt.Println("File Saved at: " + filePath)
