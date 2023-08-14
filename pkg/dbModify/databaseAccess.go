@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // MatrixEntry
@@ -117,27 +118,12 @@ CREATE TABLE IF NOT EXISTS matrix (
 
 `
 
-// ProcessRow
+// ProcessRows
 //
-//	@Description: inserts Excel row of pricing into db
-//	@param row
+//	@Description: Processes matrix rows and inserts into database
+//	@param rows
 //	@return bool
-func ProcessRow(row []string) bool {
-	// format row
-	var contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper string
-
-	contractStart = row[0]
-	state = row[1]
-	utility = row[2]
-	zone = row[3]
-	rateCodes = row[4]
-	productOptions = row[5]
-	billingMethod = row[6]
-	term = row[7]
-	usageLower = row[8]
-	usageMiddle = row[9]
-	usageUpper = row[10]
-
+func ProcessRows(rows [][]string) bool {
 	// open db
 	db, openErr := sql.Open("sqlite", dataSourcePath)
 	cobra.CheckErr(openErr)
@@ -147,18 +133,39 @@ func ProcessRow(row []string) bool {
 		cobra.CheckErr(err)
 	}(db)
 
-	//insert into db
-	insertSQL := `INSERT INTO matrix (contract_start, state_code, util_code, util_zone, util_rate_code, product_option, billing_method, contract_term, usage_lower, usage_middle, usage_upper) 
-	VALUES (?,?,?,?,?,?,?,?,?,?,?);`
-	stmt, err := db.Prepare(insertSQL)
-	cobra.CheckErr(err)
-	res, err := stmt.Exec(contractStart, state, utility, zone, rateCodes, productOptions, billingMethod, term, usageLower, usageMiddle, usageUpper)
-	cobra.CheckErr(err)
+	// insert into db in batches of 90
+	i := 90
+	for i <= len(rows)+89 {
+		valueStrings := make([]string, 0, len(rows))
+		valueArgs := make([]interface{}, 0, len(rows)*3)
+		// last batch
+		if i > len(rows) {
+			i = len(rows)
+		}
+		// compile args
+		for _, row := range rows[i-90 : i] {
+			valueStrings = append(valueStrings, "(?,?,?,?,?,?,?,?,?,?,?)")
+			valueArgs = append(valueArgs, row[0])
+			valueArgs = append(valueArgs, row[1])
+			valueArgs = append(valueArgs, row[2])
+			valueArgs = append(valueArgs, row[3])
+			valueArgs = append(valueArgs, row[4])
+			valueArgs = append(valueArgs, row[5])
+			valueArgs = append(valueArgs, row[6])
+			valueArgs = append(valueArgs, row[7])
+			valueArgs = append(valueArgs, row[8])
+			valueArgs = append(valueArgs, row[9])
+			valueArgs = append(valueArgs, row[10])
+		}
+		// insert
+		stmt := fmt.Sprintf("INSERT INTO matrix (contract_start, state_code, util_code, util_zone, util_rate_code, product_option, billing_method, contract_term, usage_lower, usage_middle, usage_upper) VALUES %s",
+			strings.Join(valueStrings, ","))
+		_, err := db.Exec(stmt, valueArgs...)
+		cobra.CheckErr(err)
+		fmt.Println(strconv.Itoa(i) + " entries inserted into database")
+		i += 90
+	}
 
-	id, err := res.LastInsertId()
-	cobra.CheckErr(err)
-
-	fmt.Println("Id inserted: " + strconv.FormatInt(id, 10))
 	return true
 }
 
