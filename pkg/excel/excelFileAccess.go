@@ -44,9 +44,8 @@ func ReadExcelFile(filePath string) {
 	// reset db
 	dbModify.ReInitializeDatabase()
 	// insert processed Excel data
-	for _, row := range rows[53:] { // CHANGE THIS TO ALL ROWS
-		dbModify.ProcessRow(row)
-	}
+	dbModify.ProcessRows(rows[53:])
+
 	fmt.Println()
 }
 
