@@ -130,4 +130,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-Thank you for using matrixTool! If you encounter any issues or have suggestions for improvements, please open an issue on the [GitHub Repository](https://github.com/rh5661/matrixTool).
+Thank you for using matrixTool! If you encounter any issues or have suggestions for improvements, please open an issue on the [GitHub Repository](https://github.com/robertDevelops1/matrixTool).
